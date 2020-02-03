@@ -5,5 +5,16 @@
 </ion-header>
 
 <ion-content ion-padding>
+  
+  <div id='images'> 
+    <div class="image" *ngFor="let post of (userPosts | async)?.posts">
+      <ion-card (click)="goto(post)">
+        <ion-img src="https://ucarecdn.com/{{ post.image }}/-/crop/200x200/center/" > </ion-img>
+        <ion-content>
+          <!-- <p>{{ post.desc }}</p> -->
+        </ion-content>
+      </ion-card>
+    </div>
+  </div>
 
 </ion-content>

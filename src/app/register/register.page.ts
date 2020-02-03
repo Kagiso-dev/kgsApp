@@ -2,8 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/auth';
 import { auth } from 'firebase/app';
 import { Router } from '@angular/router';
+import { AngularFirestore } from '@angular/fire/firestore';
 
 import { AlertController } from '@ionic/angular';
+import { UserService } from '../user.service';
 
 @Component({
   selector: 'app-register',
@@ -16,7 +18,11 @@ export class RegisterPage implements OnInit {
   password  = '';
   cpassword = '';
 
-  constructor(public afAuth: AngularFireAuth, public alert: AlertController, public route: Router) { }
+  constructor(public afAuth: AngularFireAuth, public alert: AlertController,
+              public route: Router,
+              public afStore: AngularFirestore,
+              public user: UserService,
+              public alertController: AlertController) { }
 
   ngOnInit() {
   }
@@ -31,9 +37,22 @@ export class RegisterPage implements OnInit {
     try {
       const res = await this.afAuth.auth.createUserWithEmailAndPassword(username.trim(), password);
       this.route.navigate(['/tabs']);
+
+
+      this.afStore.doc(`users/${res.user.uid}`).set({
+        username
+      });
+
+      this.user.setUser({
+        username,
+        uid: res.user.uid
+      });
+
+      this.presentAlert('Sucess!', 'You are registered!');
+      this.route.navigate(['/tabs']);
+
     } catch (err) {
-      console.dir(err);
-      this.showAlert('Error!', err.message);
+      this.presentAlert('Error!', err.message);
     }
 
   }
@@ -45,6 +64,14 @@ export class RegisterPage implements OnInit {
       buttons: ['OK']
     });
     await (await alert).present();
+  }
+
+  async presentAlert(title: string, content: string) {
+    const alert = await this.alertController.create({
+      header: title,
+      message: content,
+      buttons: ['OK']
+    });
   }
 
 }

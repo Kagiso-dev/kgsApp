@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChildren, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Http, Response } from '@angular/http';
+import { firestore } from 'firebase/app';
+import { UserService } from '../user.service';
+import { AngularFirestore } from '@angular/fire/firestore';
 
 
 @Component({
@@ -11,7 +14,12 @@ import { Http, Response } from '@angular/http';
 export class UploaderPage implements OnInit {
 
   imageURL = '';
-  constructor(public http: HttpClient) { }
+  desc = '';
+  @ViewChild('filebutton', {static: false}) filebutton;
+
+  constructor(public http: HttpClient,
+              public afStore: AngularFirestore,
+              public user: UserService) { }
 
   ngOnInit() {
   }
@@ -29,6 +37,26 @@ export class UploaderPage implements OnInit {
       console.log(event);
       this.imageURL = JSON.parse(JSON.stringify(event)).file;
     });
+  }
+
+  createPost() {
+    const image = this.imageURL;
+    const desc = this.desc;
+
+    this.afStore.doc(`users/${this.user.getUID()}`).update({
+      posts: firestore.FieldValue.arrayUnion({image})
+    });
+
+    this.afStore.doc(`posts/${image}`).set({
+      desc,
+      author: this.user.getUsername(),
+      likes: []
+    });
+
+  }
+
+  uploadFile() {
+    this.filebutton.nativeElement.click();
   }
 
 }
